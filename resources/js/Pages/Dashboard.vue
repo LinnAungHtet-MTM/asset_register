@@ -6,6 +6,8 @@ import { Head } from "@inertiajs/vue3";
 import { router } from "@inertiajs/vue3";
 import { useForm } from "@inertiajs/vue3";
 import { ref } from "vue";
+import dayjs from "dayjs";
+import { downloadExcel } from "@/ExcelDownload";
 
 const props = defineProps({
     errors: {},
@@ -17,21 +19,19 @@ const registerForm = useForm({
     asset_name: "",
 });
 
+const dateform = useForm({
+    fromDate: "",
+    toDate: "",
+});
+
 const updateForm = useForm({
     code: "",
     asset_name: "",
 });
 
-// const list = async (page = 1) => {
-//     await axios
-//         .get(`/api/users?page=${page}`)
-//         .then(({ data }) => {
-//             this.users = data;
-//         })
-//         .catch(({ response }) => {
-//             console.error(response);
-//         });
-// };
+const submitDownload = () => {
+    downloadExcel(props.datas.data, dateform.fromDate, dateform.toDate);
+};
 
 let showModal = ref(false);
 let productId = ref();
@@ -114,6 +114,45 @@ const updateAsset = () => {
             </div>
         </div>
 
+        <div>
+            <label
+                for="website"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >From</label
+            >
+            <input
+                v-model="dateform.fromDate"
+                type="date"
+                id="phone"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Enter Brand Name"
+                required
+            />
+        </div>
+
+        <button
+            class="text-white block mt-5 mx-auto bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            @click="submitDownload"
+        >
+            Download
+        </button>
+
+        <div class="mb-5">
+            <label
+                for="website"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >To</label
+            >
+            <input
+                v-model="dateform.toDate"
+                type="date"
+                id="phone"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Enter Brand Name"
+                required
+            />
+        </div>
+
         <div class="relative overflow-x-auto">
             <table
                 class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
@@ -124,6 +163,9 @@ const updateAsset = () => {
                     <tr>
                         <th scope="col" class="px-6 py-3">Code</th>
                         <th scope="col" class="px-6 py-3">Asset Name</th>
+                        <th scope="col" class="px-6 py-3">Net Cost</th>
+                        <th scope="col" class="px-6 py-3">Dep%</th>
+                        <th scope="col" class="px-6 py-3">per Month</th>
                         <th scope="col" class="px-6 py-3">Options</th>
                     </tr>
                 </thead>
@@ -135,6 +177,12 @@ const updateAsset = () => {
                     >
                         <td class="px-6 py-4">{{ data?.code }}</td>
                         <td class="px-6 py-4">{{ data?.asset_name }}</td>
+                        <td class="px-6 py-4">{{ data?.Net_cost }}</td>
+                        <td class="px-6 py-4">{{ data?.Dep }}</td>
+                        <td class="px-6 py-4">{{ data?.per_month }}</td>
+                        <!-- <td class="px-6 py-4"> -->
+                        <!-- {{ dayjs().format("YYYY-MM-DD") }} -->
+                        <!-- </td> -->
                         <td class="px-6 py-4">
                             <button
                                 @click="editAsset(data)"

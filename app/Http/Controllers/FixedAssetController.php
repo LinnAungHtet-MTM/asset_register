@@ -23,7 +23,7 @@ class FixedAssetController extends Controller
     public function create()
     {
         return Inertia('Dashboard', [
-            'datas' => FixedAsset::latest()->paginate(1)
+            'datas' => FixedAsset::latest()->paginate(5)
         ]);
     }
 
@@ -34,7 +34,10 @@ class FixedAssetController extends Controller
     {
         $inputField = $request->validate([
             'code' => ['required', Rule::unique('fixed_assets', 'code')],
-            'asset_name' => ['required']
+            'asset_name' => ['required'],
+            'Net_cost' => [],
+            'Dep%' => [],
+            'per_month' => []
         ]);
         FixedAsset::create($inputField);
     }

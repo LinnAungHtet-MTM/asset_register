@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\FixedAssetController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +39,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/dashboard', [FixedAssetController::class, 'store']);
     Route::get('/officeAsset', [FixedAssetController::class, 'index']);
+    Route::get('/file-upload', [PostController::class, 'create']);
+    Route::get('/posts', [PostController::class, 'index']);
+    Route::post('/file-upload', [PostController::class, 'store']);
     Route::put('/dashboard/edit/{id}', [FixedAssetController::class, 'update']);
 });
 

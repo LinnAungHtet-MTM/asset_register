@@ -19,6 +19,8 @@
     },
     "dependencies": {
         "@ocrv/vue-tailwind-pagination": "^0.0.4",
-        "flowbite": "^2.2.0"
+        "dayjs": "^1.11.10",
+        "flowbite": "^2.2.0",
+        "xlsx": "^0.18.5"
     }
 }

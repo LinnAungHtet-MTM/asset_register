@@ -22,8 +22,5 @@ const props = defineProps({
 
 <style scoped>
 @media (max-width: 767px) {
-    a {
-        display: none;
-    }
 }
 </style>

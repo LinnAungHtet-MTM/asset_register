@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('fixed_assets', function (Blueprint $table) {
+        Schema::create('posts', function (Blueprint $table) {
             $table->id();
-            $table->string('code')->unique();
-            $table->string('asset_name');
-            $table->integer('Net_cost')->default(50000);
-            $table->string('Dep')->default('12%');
-            $table->integer('per_month')->default(12);
+            $table->string('title')->unique();
+            $table->text('content');
+            $table->string('img');
             $table->timestamps();
         });
     }
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('fixed_assets');
+        Schema::dropIfExists('posts');
     }
 };

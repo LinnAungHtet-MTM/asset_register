@@ -5,15 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class FixedAsset extends Model
+class post extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'code',
-        'asset_name',
-        "Net_cost",
-        "Dep",
-        "per_month"
+        'title',
+        'content',
+        'img'
     ];
 }
