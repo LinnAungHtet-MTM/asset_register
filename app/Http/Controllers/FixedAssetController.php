@@ -32,13 +32,24 @@ class FixedAssetController extends Controller
      */
     public function store(Request $request)
     {
-        $inputField = $request->validate([
-            'code' => ['required', Rule::unique('fixed_assets', 'code')],
-            'asset_name' => ['required'],
-            'Net_cost' => [],
-            'Dep%' => [],
-            'per_month' => []
-        ]);
+        // $inputField = $request->validate([
+        //     'code' => ['required', Rule::unique('fixed_assets', 'code')],
+        //     'asset_name' => ['required'],
+        //     'Net_cost' => [],
+        //     'Dep%' => [],
+        //     'per_month' => []
+        // ]);
+        $inputField = [
+            'asset_name' => $request->asset_name,
+            'asset_class' => $request->asset_class,
+            'units' => $request->units,
+            'code' => $request->code,
+            'acquisition_date' => $request->acquisition_date,
+            'acquisition_cost' => $request->acquisition_cost,
+            'discount' => $request->discount,
+            'Net_cost' => $request->net_cost,
+            'Dep%' => $request->dep
+        ];
         FixedAsset::create($inputField);
     }
 
