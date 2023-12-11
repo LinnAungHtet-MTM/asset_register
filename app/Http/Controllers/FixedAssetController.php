@@ -48,7 +48,7 @@ class FixedAssetController extends Controller
             'acquisition_cost' => $request->acquisition_cost,
             'discount' => $request->discount,
             'Net_cost' => $request->net_cost,
-            'Dep%' => $request->dep
+            'Dep' => $request->dep
         ];
         FixedAsset::create($inputField);
     }

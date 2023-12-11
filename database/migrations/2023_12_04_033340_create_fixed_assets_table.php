@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer('acquisition_cost'); 
             $table->integer('discount');
             $table->integer('Net_cost')->default(50000);
-            $table->string('Dep%')->default('12%');
+            $table->string('Dep')->default('12');
             $table->timestamps();
         });
     }
