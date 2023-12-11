@@ -9,10 +9,30 @@ export const downloadExcel = (datas, fromDate, toDate) => {
         ({ created_at, updated_at, ...data }) => data
     );
 
+    let totalNetCost = 0;
+    let totalOpeningAccmulate = 0;
+    finalData.map((data) => {
+        totalNetCost += data.Net_cost;
+        totalOpeningAccmulate += data["Opening_Accumulate_at_April-23"];
+    });
+
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(finalData);
     worksheet["!cols"] = calculateColWidths(finalData);
     XLSX.utils.book_append_sheet(workbook, worksheet, `Books`);
+    const lastRowIndex = XLSX.utils.decode_range(worksheet["!ref"]).e.r;
+    const newRowData = [
+        "Total",
+        "",
+        "",
+        totalNetCost,
+        "",
+        "",
+        totalOpeningAccmulate,
+    ];
+    XLSX.utils.sheet_add_aoa(worksheet, [newRowData], {
+        origin: lastRowIndex + 1,
+    });
 
     const excelBuffer = XLSX.write(workbook, {
         bookType: "xlsx",
@@ -34,7 +54,10 @@ const generateMonthsArray = (fromDate, toDate) => {
         });
         const year = start.getFullYear();
 
-        monthsArray.push({ [`${monthString} ${year}`]: "" });
+        monthsArray.push({
+            "Opening_Accumulate_at_April-23": 2080,
+            [`${monthString} ${year}`]: "",
+        });
         start.setMonth(start.getMonth() + 1);
     }
     return monthsArray;
@@ -45,7 +68,10 @@ const calculateFilteredAssetsData = (datas, monthsArray) => {
         const result = { ...data };
         monthsArray.forEach((month) => {
             for (const key in month) {
-                if (month.hasOwnProperty(key)) {
+                if (
+                    month.hasOwnProperty(key) &&
+                    key !== "Opening_Accumulate_at_April-23"
+                ) {
                     const calculatedValue =
                         (data.Net_cost * (Number(data.Dep) / 100)) /
                         Number(data.per_month);
@@ -59,14 +85,31 @@ const calculateFilteredAssetsData = (datas, monthsArray) => {
 };
 
 const calculateTotalData = (filteredAssetsData) => {
-    return filteredAssetsData.map((data) => ({
-        ...data,
-        total:
+    return filteredAssetsData.map((data) => {
+        const total =
             Math.round(
                 (data.Net_cost * (Number(data.Dep) / 100)) /
                     Number(data.per_month)
-            ) * 12,
-    }));
+            ) * 12;
+        const writtenOff = data["Opening_Accumulate_at_April-23"] + total;
+        const closingAccumulated =
+            data["Opening_Accumulate_at_April-23"] + total - writtenOff;
+        const writtenOffExpense = data.Net_cost - writtenOff;
+        const netBookValue =
+            data.Net_cost - (closingAccumulated - writtenOffExpense);
+
+        return {
+            ...data,
+            total: total,
+            "Written Off Acc Dep": writtenOff,
+            "Closing Accumulated at March-24":
+                closingAccumulated === 0 ? "-" : closingAccumulated,
+            "Written Off Expense": writtenOffExpense,
+            "Net Book Value at March-24": writtenOffExpense
+                ? "-"
+                : netBookValue,
+        };
+    });
 };
 
 const calculateColWidths = (data) => {
