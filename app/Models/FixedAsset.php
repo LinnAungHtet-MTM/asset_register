@@ -10,10 +10,14 @@ class FixedAsset extends Model
     use HasFactory;
 
     protected $fillable = [
-        'code',
         'asset_name',
-        "Net_cost",
-        "Dep",
-        "per_month"
+        'asset_class',
+        'units',
+        'code',
+         'acquisition_date',
+         'acquisition_cost',
+         'discount',
+        'Net_cost',
+        'Dep%',
     ];
 }

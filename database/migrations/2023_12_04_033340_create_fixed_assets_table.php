@@ -13,11 +13,15 @@ return new class extends Migration
     {
         Schema::create('fixed_assets', function (Blueprint $table) {
             $table->id();
-            $table->string('code')->unique();
             $table->string('asset_name');
+            $table->string('asset_class');
+            $table->char('units')->default(1);
+            $table->string('code')->unique();
+            $table->date('acquisition_date')->unique();
+            $table->integer('acquisition_cost'); 
+            $table->integer('discount');
             $table->integer('Net_cost')->default(50000);
-            $table->string('Dep')->default('12%');
-            $table->integer('per_month')->default(12);
+            $table->string('Dep%')->default('12%');
             $table->timestamps();
         });
     }
