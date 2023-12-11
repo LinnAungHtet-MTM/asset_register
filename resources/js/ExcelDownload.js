@@ -4,9 +4,9 @@ export const downloadExcel = (datas, fromDate, toDate) => {
     const { monthsArray, monthCount } = generateMonthsArray(fromDate, toDate);
     const filteredAssetsData = calculateFilteredAssetsData(datas, monthsArray);
 
-    const totalData = calculateTotalData(filteredAssetsData);
+    const totalData = calculateTotalData(filteredAssetsData, monthCount);
     const finalData = totalData.map(
-        ({ created_at, updated_at, Dep, ...data }) => data
+        ({ created_at, updated_at, dep, disposal, ...data }) => data
     );
 
     let totalNetCost = 0;
@@ -14,7 +14,7 @@ export const downloadExcel = (datas, fromDate, toDate) => {
     // let totalWrittenOff = 0;
     // let totalClosingAccumulate = 0;
     finalData.map((data) => {
-        totalNetCost += data.Net_cost;
+        totalNetCost += data.net_cost;
         totalOpeningAccmulate += data["Opening_Accumulate_at_April-23"];
         // totalWrittenOff += data["Written Off Acc Dep"]
         //     ? data["Written Off Acc Dep"]
@@ -46,10 +46,10 @@ export const downloadExcel = (datas, fromDate, toDate) => {
     }
 
     // Calculate and print the total of the 12th column, omitting the first row
-    let columnIndex = 7;
+    let columnIndex = 12;
     let initalCount = 0;
     let monthTotalArray = [];
-    while (initalCount <= monthCount + 4) {
+    while (initalCount <= monthCount + 5) {
         const totalColumn = calculateTotal(worksheet, columnIndex);
         monthTotalArray.push(totalColumn);
         initalCount++;
@@ -60,10 +60,15 @@ export const downloadExcel = (datas, fromDate, toDate) => {
         "Total",
         "",
         "",
+        "",
+        "",
+        "",
         totalNetCost,
         "",
+        totalNetCost,
         "",
         totalOpeningAccmulate,
+        "",
         ...monthTotalArray,
         // totalWrittenOff,
         // totalClosingAccumulate,
@@ -94,7 +99,6 @@ const generateMonthsArray = (fromDate, toDate) => {
         const year = start.getFullYear();
 
         monthsArray.push({
-            "Opening_Accumulate_at_April-23": 0,
             [`${monthString} ${year}`]: "",
         });
         start.setMonth(start.getMonth() + 1);
@@ -105,7 +109,7 @@ const generateMonthsArray = (fromDate, toDate) => {
 
 const calculateFilteredAssetsData = (datas, monthsArray) => {
     return datas.map((data) => {
-        const result = { ...data, "Dep%": data.Dep + "%" };
+        const result = { ...data, "Dep%": data.dep + "%" };
         monthsArray.forEach((month) => {
             for (const key in month) {
                 if (
@@ -113,7 +117,7 @@ const calculateFilteredAssetsData = (datas, monthsArray) => {
                     key !== "Opening_Accumulate_at_April-23"
                 ) {
                     const calculatedValue =
-                        (data.Net_cost * (Number(data.Dep) / 100)) / 12;
+                        (data.net_cost * (Number(data.dep) / 100)) / 12;
                     month[key] = Math.round(calculatedValue);
                 }
             }
@@ -123,25 +127,56 @@ const calculateFilteredAssetsData = (datas, monthsArray) => {
     });
 };
 
-const calculateTotalData = (filteredAssetsData) => {
+const calculateTotalData = (filteredAssetsData, monthCount) => {
     const total_acquisition = 0;
-    return filteredAssetsData.map((data) => {
+    const assetsData = filteredAssetsData.map(
+        ({
+            created_at,
+            updated_at,
+            // dep,
+            // disposal,
+            // asset_class,
+            // asset_name,
+            // id,
+            // units,
+            // code,
+            ...data
+        }) => data
+    );
+    return assetsData.map((data) => {
         const total =
-            Math.round((data.Net_cost * (Number(data.Dep) / 100)) / 12) * 12;
-        const writtenOff = data["Opening_Accumulate_at_April-23"] + total;
+            Math.round((data.net_cost * (Number(data.dep) / 100)) / 12) *
+            monthCount;
+        const writtenOff =
+            data["Opening_Accumulate_at_April-23"] != 0
+                ? data["Opening_Accumulate_at_April-23"] + total
+                : "";
         const closingAccumulated =
             data["Opening_Accumulate_at_April-23"] + total - writtenOff;
-        const writtenOffExpense = data.Net_cost - writtenOff;
+        const writtenOffExpense =
+            writtenOff != 0 ? data.net_cost - writtenOff : "";
         const netBookValue =
-            data.Net_cost - (closingAccumulated - writtenOffExpense);
+            data.net_cost - (closingAccumulated - writtenOffExpense);
 
         return {
+            // ID: data.id,
+            // "Asset Name": data.asset_name,
+            // "Asset Class": data.asset_class,
+            // Units: data.units,
+            // Code: data.code,
+            // "Acquistion Date": data.acquisition_date,
+            // "Acquistion Cost": data.acquisition_cost,
+            // Discount: data.discount,
+            // "Net Cost": data.net_cost,
+            // "Dep%": data.dep,
+            // month: data.month,
             ...data,
             total: total,
             "Written Off Acc Dep": writtenOff,
             "Closing Accumulated at March-24":
                 closingAccumulated === 0 ? 0 : closingAccumulated,
             "Written Off Expense": writtenOffExpense,
+            Disposal: data.disposal,
             "Net Book Value at March-24": writtenOffExpense ? 0 : netBookValue,
         };
     });
