@@ -39,7 +39,8 @@ const updateForm = useForm({
 });
 
 const submitDownload = () => {
-    downloadExcel(props.datas.data, dateform.fromDate, dateform.toDate);
+  
+    downloadExcel(props.datas, dateform.fromDate, dateform.toDate);
 };
 
 let showModal = ref(false);
@@ -77,50 +78,6 @@ const updateAsset = () => {
     <AuthenticatedLayout>
         <div class="py-12">
             <div class="max-w-sm mx-auto sm:px-6 lg:px-8">
-                <!-- <form
-                    @submit.prevent="handleSubmit"
-                    class="mx-auto shadow bg-white p-6 rounded"
-                >
-                    <div class="mb-5">
-                        <label
-                            for="code"
-                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                            >Code</label
-                        >
-                        <input
-                            v-model="registerForm.code"
-                            type="text"
-                            id="code"
-                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        />
-                        <p class="text-red-600 text-sm">
-                            {{ props.errors.code }}
-                        </p>
-                    </div>
-                    <div class="mb-5">
-                        <label
-                            for="asset_name"
-                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                            >Asset Name</label
-                        >
-                        <input
-                            v-model="registerForm.asset_name"
-                            type="text"
-                            id="asset_name"
-                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        />
-                        <p class="text-red-600 text-sm">
-                            {{ props.errors.asset_name }}
-                        </p>
-                    </div>
-                    <button
-                        @click="btnText === 'Edit' ? updateAsset() : ''"
-                        type="submit"
-                        class="text-white block mx-auto bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                    >
-                        Register
-                    </button>
-                </form> -->
                  <form  @submit.prevent="handleSubmit">
           <div class="grid gap-6 mb-6 md:grid-cols-2">
            
@@ -346,7 +303,7 @@ const updateAsset = () => {
             />
         </div>
 
-        <div class="relative overflow-x-auto">
+        <!-- <div class="relative overflow-x-auto">
             <table
                 class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
             >
@@ -373,9 +330,49 @@ const updateAsset = () => {
                         <td class="px-6 py-4">{{ data?.Net_cost }}</td>
                         <td class="px-6 py-4">{{ data?.Dep }}</td>
                         <td class="px-6 py-4">{{ data?.per_month }}</td>
-                        <!-- <td class="px-6 py-4"> -->
-                        <!-- {{ dayjs().format("YYYY-MM-DD") }} -->
-                        <!-- </td> -->
+                        <td class="px-6 py-4">
+                            <button
+                                @click="editAsset(data)"
+                                class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                            >
+                                Edit
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div> -->
+
+                <div class="relative overflow-x-auto">
+            <table
+                class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+            >
+                <thead
+                    class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+                >
+                    <tr>
+                        <th scope="col" class="px-6 py-3">Code</th>
+                        <th scope="col" class="px-6 py-3">Asset Name</th>
+                        <th scope="col" class="px-6 py-3">Net Cost</th>
+                        <th scope="col" class="px-6 py-3">Dep%</th>
+                        <th scope="col" class="px-6 py-3">per Month</th>
+                        <th scope="col" class="px-6 py-3">Options</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="data in props.datas"
+                        :key="data?.depreciation_id"
+                        class="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
+                    >
+                        <td class="px-6 py-4">{{ data.office_asset.serial_number }}</td>
+                        <td class="px-6 py-4">{{ data.office_asset.brand_name }}</td>
+                        <td class="px-6 py-4">{{ data.net_cost }}</td>
+                        <td class="px-6 py-4">{{ data.depreciation_percent }}</td>
+                        <!-- <td class="px-6 py-4">{{ data?.asset_name }}</td>
+                        <td class="px-6 py-4">{{ data?.Net_cost }}</td>
+                        <td class="px-6 py-4">{{ data?.Dep }}</td>
+                        <td class="px-6 py-4">{{ data?.per_month }}</td> -->
                         <td class="px-6 py-4">
                             <button
                                 @click="editAsset(data)"
@@ -448,8 +445,8 @@ const updateAsset = () => {
                 </template>
             </TeleportModal>
         </Teleport>
-        <div class="mt-8 px-4">
+        <!-- <div class="mt-8 px-4">
             <Pagination :links="props.datas.links" />
-        </div>
+        </div> -->
     </AuthenticatedLayout>
 </template>

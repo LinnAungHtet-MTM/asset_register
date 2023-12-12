@@ -3,6 +3,8 @@
 use App\Http\Controllers\FixedAssetController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
+use App\Models\Depreciation;
+use App\Models\OfficeAsset;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -24,6 +26,12 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+    ]);
+});
+
+Route::get('/office-assets', function () {
+    return Inertia('Dashboard', [
+        'datas' => Depreciation::with('officeAsset.assetCode.assetClass')->get()
     ]);
 });
 

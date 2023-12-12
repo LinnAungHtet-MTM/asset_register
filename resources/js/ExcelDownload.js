@@ -1,46 +1,77 @@
 import * as XLSX from "xlsx";
 
 export const downloadExcel = (datas, fromDate, toDate) => {
-    const {monthsArray,monthCount} = generateMonthsArray(fromDate, toDate);
+    const { monthsArray, monthCount } = generateMonthsArray(fromDate, toDate);
     const filteredAssetsData = calculateFilteredAssetsData(datas, monthsArray);
-    
-    const totalData = calculateTotalData(filteredAssetsData);
+
+    const totalData = calculateTotalData(filteredAssetsData, monthCount);
     const finalData = totalData.map(
-        ({ created_at, updated_at,Dep, ...data }) => data
+        ({ created_at, updated_at, depreciation_id,office_asset_id,deduct,financial_month,
+            depreciation_percent,net_cost, opening_date,opening_amount,disposal,remark,office_asset
+            , ...data }) => data
     );
-    
+
+    let totalNetCost = 0;
+    let totalOpeningAccmulate = 0;
+    let totalAcquisitionCost = 0;
+    totalData.map((data) => {
+        totalNetCost += data.net_cost;
+        totalAcquisitionCost += data.office_asset.price
+        // totalOpeningAccmulate += data["Opening_Accumulate_at_April-23"];
+    });
+
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(finalData);
     worksheet["!cols"] = calculateColWidths(finalData);
     XLSX.utils.book_append_sheet(workbook, worksheet, `Books`);
-  
+
     function calculateTotal(sheet, columnIndex) {
-        const range = XLSX.utils.decode_range(sheet['!ref']);
+        const range = XLSX.utils.decode_range(sheet["!ref"]);
         let total = 0;
-      
+
         for (let row = range.s.r + 1; row <= range.e.r; row++) {
-          const cellAddress = XLSX.utils.encode_cell({ r: row, c: columnIndex });
-          const cellValue = sheet[cellAddress] ? sheet[cellAddress].v : 0;
-          total += cellValue;
+            const cellAddress = XLSX.utils.encode_cell({
+                r: row,
+                c: columnIndex,
+            });
+            const cellValue = sheet[cellAddress] ? sheet[cellAddress].v : 0;
+            total += cellValue;
         }
-      
+
         return total;
-      }
-      
-      // Calculate and print the total of the 12th column, omitting the first row
-      let columnIndex = 11;
-      let initalCount = 0;
-     let monthTotalArray =[];
-      console.log(monthCount);
-      while (initalCount < monthCount) {
+    }
+
+    // Calculate and print the total of the 12th column, omitting the first row
+    let columnIndex = 11;
+    let initalCount = 0;
+    let monthTotalArray = [];
+    while (initalCount <= monthCount + 4) {
         const totalColumn = calculateTotal(worksheet, columnIndex);
-       monthTotalArray.push(totalColumn);
+        monthTotalArray.push(totalColumn);
         initalCount++;
         columnIndex++;
-      }
-      
-      
-    XLSX.utils.sheet_add_aoa(worksheet, [["", "Total","","","","","","","","","",...monthTotalArray ]], {
+    }
+
+    const newRowData = [
+        "Total",
+        "",
+        "",
+        "",
+        "",
+      totalAcquisitionCost,
+        "",
+        
+        totalNetCost,
+        "",
+        "",
+        // totalOpeningAccmulate,
+        "",
+        ...monthTotalArray,
+        // totalWrittenOff,
+        // totalClosingAccumulate,
+    ];
+
+    XLSX.utils.sheet_add_aoa(worksheet, [newRowData], {
         origin: -1,
     });
     const excelBuffer = XLSX.write(workbook, {
@@ -64,25 +95,27 @@ const generateMonthsArray = (fromDate, toDate) => {
         });
         const year = start.getFullYear();
 
-        monthsArray.push({ "Opening_Accumulate_at_April-23": 2080,[`${monthString} ${year}`]: "" });
+        monthsArray.push({
+            [`${monthString} ${year}`]: "",
+        });
         start.setMonth(start.getMonth() + 1);
-        monthCount +=1;
+        monthCount += 1;
     }
-    return {monthsArray,monthCount};
+    return { monthsArray, monthCount };
 };
 
 const calculateFilteredAssetsData = (datas, monthsArray) => {
-   
     return datas.map((data) => {
-        const result = { ...data,'Dep%':data.Dep + '%' };
+        const result = { ...data};
         monthsArray.forEach((month) => {
             for (const key in month) {
-                if (month.hasOwnProperty(key) && key !== "Opening_Accumulate_at_April-23") {
+                if (
+                    month.hasOwnProperty(key) &&
+                    key !== "Opening_Accumulate_at_April-23"
+                ) {
                     const calculatedValue =
-                        (data.Net_cost * (Number(data.Dep) / 100)) /
-                        12
+                        (data.net_cost * (Number(data.depreciation_percent) / 100)) / 12;
                     month[key] = Math.round(calculatedValue);
-                   
                 }
             }
             Object.assign(result, month);
@@ -91,32 +124,64 @@ const calculateFilteredAssetsData = (datas, monthsArray) => {
     });
 };
 
-const calculateTotalData = (filteredAssetsData) => {
-    const total_acquisition=0;
-    return filteredAssetsData.map((data) => {
+const calculateTotalData = (filteredAssetsData, monthCount) => {
+    const total_acquisition = 0;
+    const assetsData = filteredAssetsData.map(
+        ({
+            created_at,
+            updated_at,
+            // dep,
+            // disposal,
+            // asset_class,
+            // asset_name,
+            // id,
+            // units,
+            // code,
+            ...data
+        }) => data
+    );
+    console.log(assetsData)
+    return assetsData.map((data) => {
         const total =
-            Math.round(
-                (data.Net_cost * (Number(data.Dep) / 100)) /
-                   12
-            ) * 12;
-        const writtenOff = data["Opening_Accumulate_at_April-23"] + total;
+            Math.round((data.net_cost * (Number(data.depreciation_percent) / 100)) / 12) *
+            monthCount;
+        // const writtenOff =
+        //     data["Opening_Accumulate_at_April-23"] != 0
+        //         ? data["Opening_Accumulate_at_April-23"] + total
+        //         : "";
+        const writtenOff = "";
+        // const closingAccumulated =
+        //     data["Opening_Accumulate_at_April-23"] + total - writtenOff;
         const closingAccumulated =
-            data["Opening_Accumulate_at_April-23"] + total - writtenOff;
-        const writtenOffExpense = data.Net_cost - writtenOff;
+            0 + total - writtenOff;
+        const writtenOffExpense =
+            writtenOff != 0 ? data.net_cost - writtenOff : "";
         const netBookValue =
-            data.Net_cost - (closingAccumulated - writtenOffExpense);
+            data.net_cost - (closingAccumulated - writtenOffExpense);
 
-        return {
-            ...data,
-            total: total,
-            "Written Off Acc Dep": writtenOff,
-            "Closing Accumulated at March-24":
-                closingAccumulated === 0 ? "-" : closingAccumulated,
-            "Written Off Expense": writtenOffExpense,
-            "Net Book Value at March-24": writtenOffExpense
-                ? "-"
-                : netBookValue,
-        };
+            return {
+            
+                "Asset Name": data.office_asset.brand_name,
+                "Asset Class":data.office_asset.asset_code.asset_class.asset_class_name,
+                "Units":data.office_asset.qty,
+                "Serial Number":data.office_asset.serial_number,
+                "Acquisition Date":data.office_asset.purchase_date,
+                "Acquisition Cost":data.office_asset.price,
+                "Deduct(Discount)":data.deduct,
+                "Net Cost":data.net_cost,
+                "Dep":data.depreciation_percent+"%",
+                "Financial Month":data.financial_month,
+                "Opening Accumulated at March-23":"",
+                ...data,
+                total: total,
+                "Written Off Acc Dep": writtenOff,
+                "Closing Accumulated at March-24":
+                    closingAccumulated === 0 ? 0 : closingAccumulated,
+                "Written Off Expense": writtenOffExpense,
+                "Net Book Value at March-24": writtenOffExpense ? 0 : netBookValue,
+                "Remark":data.remark
+            };
+    
     });
 };
 
