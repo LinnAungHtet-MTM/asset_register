@@ -2,7 +2,11 @@ import * as XLSX from "xlsx";
 
 export const downloadExcel = (datas, fromDate, toDate) => {
     const { monthsArray, monthCount } = generateMonthsArray(fromDate, toDate);
-    const filteredAssetsData = calculateFilteredAssetsData(datas, monthsArray);
+    const filteredAssetsData = calculateFilteredAssetsData(
+        datas,
+        monthsArray,
+        monthCount
+    );
 
     const totalData = calculateTotalData(filteredAssetsData, monthCount);
     const finalData = totalData.map(
@@ -11,17 +15,9 @@ export const downloadExcel = (datas, fromDate, toDate) => {
 
     let totalNetCost = 0;
     let totalOpeningAccmulate = 0;
-    // let totalWrittenOff = 0;
-    // let totalClosingAccumulate = 0;
     finalData.map((data) => {
         totalNetCost += data.net_cost;
         totalOpeningAccmulate += data["Opening_Accumulate_at_April-23"];
-        // totalWrittenOff += data["Written Off Acc Dep"]
-        //     ? data["Written Off Acc Dep"]
-        //     : "-";
-        // totalClosingAccumulate += data["Closing Accumulated at March-24"]
-        //     ? data["Closing Accumulated at March-24"]
-        //     : "";
     });
 
     const workbook = XLSX.utils.book_new();
@@ -70,8 +66,6 @@ export const downloadExcel = (datas, fromDate, toDate) => {
         totalOpeningAccmulate,
         "",
         ...monthTotalArray,
-        // totalWrittenOff,
-        // totalClosingAccumulate,
     ];
 
     XLSX.utils.sheet_add_aoa(worksheet, [newRowData], {
@@ -112,10 +106,7 @@ const calculateFilteredAssetsData = (datas, monthsArray) => {
         const result = { ...data, "Dep%": data.dep + "%" };
         monthsArray.forEach((month) => {
             for (const key in month) {
-                if (
-                    month.hasOwnProperty(key) &&
-                    key !== "Opening_Accumulate_at_April-23"
-                ) {
+                if (month.hasOwnProperty(key)) {
                     const calculatedValue =
                         (data.net_cost * (Number(data.dep) / 100)) / 12;
                     month[key] = Math.round(calculatedValue);
@@ -130,18 +121,7 @@ const calculateFilteredAssetsData = (datas, monthsArray) => {
 const calculateTotalData = (filteredAssetsData, monthCount) => {
     const total_acquisition = 0;
     const assetsData = filteredAssetsData.map(
-        ({
-            created_at,
-            updated_at,
-            // dep,
-            // disposal,
-            // asset_class,
-            // asset_name,
-            // id,
-            // units,
-            // code,
-            ...data
-        }) => data
+        ({ created_at, updated_at, ...data }) => data
     );
     return assetsData.map((data) => {
         const total =
@@ -159,17 +139,6 @@ const calculateTotalData = (filteredAssetsData, monthCount) => {
             data.net_cost - (closingAccumulated - writtenOffExpense);
 
         return {
-            // ID: data.id,
-            // "Asset Name": data.asset_name,
-            // "Asset Class": data.asset_class,
-            // Units: data.units,
-            // Code: data.code,
-            // "Acquistion Date": data.acquisition_date,
-            // "Acquistion Cost": data.acquisition_cost,
-            // Discount: data.discount,
-            // "Net Cost": data.net_cost,
-            // "Dep%": data.dep,
-            // month: data.month,
             ...data,
             total: total,
             "Written Off Acc Dep": writtenOff,

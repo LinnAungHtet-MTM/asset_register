@@ -14,10 +14,13 @@ class FixedAsset extends Model
         'asset_class',
         'units',
         'code',
-         'acquisition_date',
-         'acquisition_cost',
-         'discount',
-        'Net_cost',
-        'Dep%',
+        'acquisition_date',
+        'acquisition_cost',
+        'discount',
+        'net_cost',
+        'dep',
+        'month',
+        'Opening_Accumulate_at_April-23',
+        'disposal',
     ];
 }

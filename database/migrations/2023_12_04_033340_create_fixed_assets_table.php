@@ -17,11 +17,14 @@ return new class extends Migration
             $table->string('asset_class');
             $table->char('units')->default(1);
             $table->string('code')->unique();
-            $table->date('acquisition_date')->unique();
-            $table->integer('acquisition_cost'); 
+            $table->date('acquisition_date');
+            $table->integer('acquisition_cost');
             $table->integer('discount');
-            $table->integer('Net_cost')->default(50000);
-            $table->string('Dep')->default('12');
+            $table->integer('net_cost')->default(50000);
+            $table->string('dep');
+            $table->string('month');
+            $table->integer('Opening_Accumulate_at_April-23')->default(0);
+            $table->integer('disposal')->default(0);
             $table->timestamps();
         });
     }

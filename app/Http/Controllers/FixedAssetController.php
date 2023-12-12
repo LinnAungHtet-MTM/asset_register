@@ -23,7 +23,7 @@ class FixedAssetController extends Controller
     public function create()
     {
         return Inertia('Dashboard', [
-            'datas' => FixedAsset::latest()->paginate(5)
+            'datas' => FixedAsset::get()
         ]);
     }
 
@@ -47,8 +47,9 @@ class FixedAssetController extends Controller
             'acquisition_date' => $request->acquisition_date,
             'acquisition_cost' => $request->acquisition_cost,
             'discount' => $request->discount,
-            'Net_cost' => $request->net_cost,
-            'Dep' => $request->dep
+            'net_cost' => $request->net_cost,
+            'dep' => $request->dep,
+            'month' => $request->month,
         ];
         FixedAsset::create($inputField);
     }
