@@ -2,75 +2,71 @@ import * as XLSX from "xlsx";
 
 export const downloadExcel = (datas, fromDate, toDate) => {
     const { monthsArray, monthCount } = generateMonthsArray(fromDate, toDate);
-    const filteredAssetsData = calculateFilteredAssetsData(datas, monthsArray);
-    console.log(filteredAssetsData);
-    const totalData = calculateTotalData(filteredAssetsData, monthCount);
-    const finalData = totalData.map(
-        ({
-            created_at,
-            updated_at,
-            depreciation_id,
-            office_asset_id,
-            deduct,
-            financial_month,
-            depreciation_percent,
-            net_cost,
-            opening_date,
-            opening_amount,
-            disposal,
-            remark,
-            office_asset,
-            ...data
-        }) => data
-    );
+  
+    const splitDataByMonth = (data) => {
+        const result = [];
+        let currentMonthArray = [];
+      
+        data.forEach((item, index) => {
+          const month = Object.keys(item)[0];
+          currentMonthArray.push(item);
+      
+          if ((index + 1) % 12 === 0 || index === data.length - 1) {
+            result.push(currentMonthArray);
+            currentMonthArray = [];
+          }
+        });
+      
+        return result;
+      };
 
+    const nestedArrays = splitDataByMonth(monthsArray);
+    console.log(nestedArrays)
     const workbook = XLSX.utils.book_new();
-    let worksheet;
-    // worksheet = XLSX.utils.json_to_sheet(finalData);
-    // worksheet["!cols"] = calculateColWidths(finalData);
-    // XLSX.utils.book_append_sheet(workbook, worksheet, `Books`);
-
-    if (fromDate && toDate) {
-        const selectFromYear = new Date(fromDate);
-        const selectToYear = new Date(toDate);
-        for (
-            let year = selectFromYear.getFullYear();
-            year <= selectToYear.getFullYear();
-            year++
-        ) {
-            const yearData = finalData.filter((data) => {
-                const acquisitionDate = new Date(data["Acquisition Date"]);
-                return acquisitionDate.getFullYear() === year;
-            });
-            if (yearData.length > 0) {
-                worksheet = XLSX.utils.json_to_sheet(yearData);
-                worksheet["!cols"] = calculateColWidths(yearData);
-                XLSX.utils.book_append_sheet(
-                    workbook,
-                    worksheet,
-                    `Year ${year}`
-                );
-
+    nestedArrays.forEach((monthArray,index) => {
+        const filteredAssetsData = calculateFilteredAssetsData(datas, monthArray);
+        const totalData = calculateTotalData(filteredAssetsData, monthArray.length);
+        const finalData = totalData.map(
+            ({
+                created_at,
+                updated_at,
+                depreciation_id,
+                office_asset_id,
+                deduct,
+                financial_month,
+                depreciation_percent,
+                net_cost,
+                opening_date,
+                opening_amount,
+                disposal,
+                remark,
+                office_asset,
+                ...data
+            }) => data
+        );
                 let totalNetCost = 0;
                 let totalAcquisitionCost = 0;
 
-                yearData.map((data) => {
+                finalData.map((data) => {
                     totalNetCost += data["Net Cost"];
                     totalAcquisitionCost += data["Acquisition Cost"];
                 });
+                
+                const worksheet = XLSX.utils.json_to_sheet(finalData);
+                worksheet["!cols"] = calculateColWidths(finalData);
 
-                let columnIndex = 11;
+                let columnIndex = 12;
                 let initalCount = 0;
                 let monthTotalArray = [];
-                while (initalCount <= monthCount + 4) {
+                while (initalCount <=  monthArray.length + 5) {
                     const totalColumn = calculateTotal(worksheet, columnIndex);
                     monthTotalArray.push(totalColumn);
                     initalCount++;
                     columnIndex++;
                 }
-
+            
                 const newRowData = [
-                    "Total",
+                   "Total",
                     "",
                     "",
                     "",
@@ -83,17 +79,110 @@ export const downloadExcel = (datas, fromDate, toDate) => {
                     "",
                     ...monthTotalArray,
                 ];
-
+            
                 XLSX.utils.sheet_add_aoa(worksheet, [newRowData], {
                     origin: -1,
                 });
-            }
-        }
-    } else {
-        worksheet = XLSX.utils.json_to_sheet(finalData);
-        worksheet["!cols"] = calculateColWidths(finalData);
-        XLSX.utils.book_append_sheet(workbook, worksheet, `All Year`);
-    }
+                XLSX.utils.book_append_sheet(workbook, worksheet, `Year ${index}` );
+    })
+
+ 
+       const excelBuffer = XLSX.write(workbook, {
+        bookType: "xlsx",
+        type: "array",
+    });
+
+    downloadExcelFile(excelBuffer, "bookList.xlsx");
+ 
+
+    // const filteredAssetsData = calculateFilteredAssetsData(datas, monthsArray);
+    // const totalData = calculateTotalData(filteredAssetsData, monthCount);
+    // const finalData = totalData.map(
+    //     ({
+    //         created_at,
+    //         updated_at,
+    //         depreciation_id,
+    //         office_asset_id,
+    //         deduct,
+    //         financial_month,
+    //         depreciation_percent,
+    //         net_cost,
+    //         opening_date,
+    //         opening_amount,
+    //         disposal,
+    //         remark,
+    //         office_asset,
+    //         ...data
+    //     }) => data
+    // );
+
+    // const workbook = XLSX.utils.book_new();
+    // let worksheet;
+
+    // if (fromDate && toDate) {
+    //     const selectFromYear = new Date(fromDate);
+    //     const selectToYear = new Date(toDate);
+    //     for (
+    //         let year = selectFromYear.getFullYear();
+    //         year <= selectToYear.getFullYear();
+    //         year++
+    //     ) {
+    //         const yearData = finalData.filter((data) => {
+    //             const acquisitionDate = new Date(data["Acquisition Date"]);
+    //             return acquisitionDate.getFullYear() === year;
+    //         });
+    //         if (yearData.length > 0) {
+    //             worksheet = XLSX.utils.json_to_sheet(yearData);
+    //             worksheet["!cols"] = calculateColWidths(yearData);
+    //             XLSX.utils.book_append_sheet(
+    //                 workbook,
+    //                 worksheet,
+    //                 `Year ${year}`
+    //             );
+
+    //             let totalNetCost = 0;
+    //             let totalAcquisitionCost = 0;
+
+    //             yearData.map((data) => {
+    //                 totalNetCost += data["Net Cost"];
+    //                 totalAcquisitionCost += data["Acquisition Cost"];
+    //             });
+
+    //             let columnIndex = 11;
+    //             let initalCount = 0;
+    //             let monthTotalArray = [];
+    //             while (initalCount <= monthCount + 4) {
+    //                 const totalColumn = calculateTotal(worksheet, columnIndex);
+    //                 monthTotalArray.push(totalColumn);
+    //                 initalCount++;
+    //                 columnIndex++;
+    //             }
+
+    //             const newRowData = [
+    //                 "Total",
+    //                 "",
+    //                 "",
+    //                 "",
+    //                 "",
+    //                 totalAcquisitionCost,
+    //                 "",
+    //                 totalNetCost,
+    //                 "",
+    //                 "",
+    //                 "",
+    //                 ...monthTotalArray,
+    //             ];
+
+    //             XLSX.utils.sheet_add_aoa(worksheet, [newRowData], {
+    //                 origin: -1,
+    //             });
+    //         }
+    //     }
+    // } else {
+    //     worksheet = XLSX.utils.json_to_sheet(finalData);
+    //     worksheet["!cols"] = calculateColWidths(finalData);
+    //     XLSX.utils.book_append_sheet(workbook, worksheet, `All Year`);
+    // }
 
     function calculateTotal(sheet, columnIndex) {
         const range = XLSX.utils.decode_range(sheet["!ref"]);
@@ -111,10 +200,10 @@ export const downloadExcel = (datas, fromDate, toDate) => {
         return total;
     }
 
-    const excelBuffer = XLSX.write(workbook, {
-        bookType: "xlsx",
-        type: "array",
-    });
+    // const excelBuffer = XLSX.write(workbook, {
+    //     bookType: "xlsx",
+    //     type: "array",
+    // });
 
     // downloadExcelFile(excelBuffer, "bookList.xlsx");
 };
