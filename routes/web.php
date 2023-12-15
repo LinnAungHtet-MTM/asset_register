@@ -8,6 +8,7 @@ use App\Models\OfficeAsset;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,11 +30,24 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/office-assets', function () {
+Route::get('/office-assets', function (Request $request) {
+    $pageSize = 5;
+    if($request->size){
+        $pageSize = $request->size;
+    }
+   
+        $datas = Depreciation::with('officeAsset.assetCode.assetClass')->paginate($pageSize);
+
     return Inertia('Dashboard', [
-        'datas' => Depreciation::with('officeAsset.assetCode.assetClass')->get()
-    ]);
+        'datas' => $datas,
+        'pageSize' => $pageSize
+            ]);
+          
 });
+
+
+
+
 
 // Route::get('/dashboard', function () {
 //     return Inertia::render('Dashboard');

@@ -23,7 +23,7 @@ class FixedAssetController extends Controller
     public function create()
     {
         return Inertia('Dashboard', [
-            'datas' => FixedAsset::latest()->paginate(5)
+            'datas' => FixedAsset::latest()->get()
         ]);
     }
 
