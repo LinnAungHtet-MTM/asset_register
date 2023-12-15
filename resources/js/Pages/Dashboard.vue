@@ -68,6 +68,40 @@ const updateAsset = () => {
     updateForm.asset_name = "";
     showModal.value = false;
 };
+
+let fromDateError = "";
+let toDateError = "";
+
+const validateFromDate = () => {
+    // let searchDate = new Date(date).getFullYear();
+
+    // if (parseInt(String(searchDate).charAt(3)) === 0) {
+    const minDate = new Date("2022-01-01");
+    const enterValue = dateform.fromDate;
+    const isValidDate =
+        new Date(enterValue).getFullYear() >= minDate.getFullYear();
+    let dateLength = String(new Date(enterValue).getUTCFullYear()).length;
+
+    if (!isValidDate && dateLength === 4) {
+        dateform.fromDate = ""; // Clear the input or provide a default date
+        fromDateError = "Please select a date on or after January 1, 2023.";
+    } else {
+        fromDateError = "";
+    }
+};
+
+const checkToDate = () => {
+    let fromDate = new Date(dateform.fromDate);
+    let toDate = new Date(dateform.toDate);
+    let dateLength = String(new Date(dateform.toDate).getUTCFullYear()).length;
+
+    if (fromDate > toDate && dateLength === 4) {
+        dateform.toDate = "";
+        toDateError = "To date is greater than from date";
+    } else {
+        toDateError = "";
+    }
+};
 </script>
 
 <template>
@@ -260,6 +294,8 @@ const updateAsset = () => {
             </div>
         </div>
 
+        <!-- <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 type="month" /> -->
+
         <div>
             <label
                 for="website"
@@ -268,20 +304,15 @@ const updateAsset = () => {
             >
             <input
                 v-model="dateform.fromDate"
-                type="date"
-                id="phone"
+                type="month"
+                id="fromDate"
+                @input="validateFromDate"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Enter Brand Name"
-                required
             />
+            <p v-if="fromDateError" class="text-red-500 text-sm mt-2">
+                {{ fromDateError }}
+            </p>
         </div>
-
-        <button
-            class="text-white block mt-5 mx-auto bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            @click="submitDownload"
-        >
-            Download
-        </button>
 
         <div class="mb-5">
             <label
@@ -291,13 +322,22 @@ const updateAsset = () => {
             >
             <input
                 v-model="dateform.toDate"
-                type="date"
-                id="phone"
+                type="month"
+                id="toDate"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Enter Brand Name"
-                required
+                @input="checkToDate"
             />
+            <p v-if="toDateError" class="text-red-500 text-sm mt-2">
+                {{ toDateError }}
+            </p>
         </div>
+
+        <button
+            class="text-white block mt-5 mx-auto mb-5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            @click="submitDownload"
+        >
+            Download
+        </button>
 
         <!-- <div class="relative overflow-x-auto">
             <table
